@@ -1,44 +1,33 @@
 #!/usr/bin/python3
-"""
-Script uses blueprint object for routing the application
-"""
-from flask import Flask, jsonify, make_response
-from models import storage
-from api.v1.views import app_views
-from os import environ
+'''
+app setup for Airbnb_Clone_v3
+'''
+from flask import Flask, render_template, abort, make_response, jsonify
 from flask_cors import CORS
+from models import storage
+from os import getenv
+from api.v1.views import app_views
+from flasgger import Swagger
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/api/*": {"origins": "0.0.0.0"}})
-
-
 app.url_map.strict_slashes = False
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 app.register_blueprint(app_views)
-
-
-@app.teardown_appcontext
-def teardown_db(error):
-    """
-    function closes the db when called
-    """
-    storage.close()
+swagger = Swagger(app)
 
 
 @app.errorhandler(404)
-def not_found(e):
-    """
-    404 error handler
-    """
-    return make_response(jsonify({"error": 'Not found'}), 404)
+def page_not_found(e):
+    return jsonify({"error": "Not found"}), 404
 
 
-if __name__ == '__main__':
-    host = environ.get('HBNB_API_HOST')
-    port = environ.get('HBNB_API_PORT')
+@app.teardown_appcontext
+def close(exception):
+    storage.close()
 
-    if not host:
-        host = '0.0.0.0'
-    if not port:
-        port = 5000
 
-    app.run(host=host, port=port, threaded=True)  # type: ignore
+if __name__ == "__main__":
+    apiHost = getenv("HBNB_API_HOST", default="0.0.0.0")
+    apiPort = getenv("HBNB_API_PORT", default=5000)
+    app.run(host=apiHost, port=int(apiPort), threaded=True)

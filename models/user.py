@@ -8,7 +8,6 @@ from sqlalchemy.orm import relationship
 from models.base_model import BaseModel, Base
 import hashlib
 
-
 class User(BaseModel, Base):
     '''
         Definition of the User class
